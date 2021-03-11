@@ -1,0 +1,422 @@
+<html>
+  <head>
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Charisi: A rich text editor for the web, built for speed and stability.</title>
+    <style>
+      html, body {
+        background-color: #EEE;
+        font-family: "Inter", "Inter UI", -apple-system, sans-serif;
+        font-size: 16px;
+        position: relative;
+        height: 100%;
+        margin: 0;
+        padding: 0;
+      }
+
+      blockquote {
+        border-left: 4px solid #EEE;
+        display: block;
+        margin: 0 0 .75rem 0;
+        padding: 0rem .75rem 0rem 1.25rem;
+      }
+
+      #editor {
+        background-color: #FFF;
+        border-radius: .1875rem;
+        padding: .5rem;
+        top: 3rem;
+        right: .5rem;
+        bottom: .5rem;
+        left: .5rem;
+        position: absolute;
+        overflow: auto;
+      }
+
+      #editor:focus {
+        outline: none;
+      }
+
+      #editor-toolbar {
+        position: absolute;
+        overflow: hidden;
+        top: 0px;
+        padding-top: .5rem;
+        left: .5rem;
+        right: .5rem;
+        height: 2.5rem;
+        background: #EEE;
+        z-index: 1;
+        transition: .2s top ease;
+        text-align: center;
+      }
+
+      #editor-toolbar button {
+        background: #EEE;
+        border-radius: .1875rem;
+        border: none;
+        display: inline-block;
+        cursor: pointer;
+        color: #555;
+        font-size: 1rem;
+        padding: .5rem;
+        transition: background-color .2s ease, color .2s ease;
+      }
+
+      #editor-toolbar button:active {
+        background-color: #FFF;
+        color: #000;
+      }
+
+      #editor-toolbar button:focus {
+        background: #EEE;
+        color: #555;
+      }
+
+      figure {
+        max-width: 33%;
+        margin: 0 auto;
+        display: block;
+        position: relative;
+      }
+
+      figure.selected img {
+        box-shadow: 0 0 0 2px highlight;
+      }
+
+      figure img {
+        width: 100%;
+        height: auto;
+      }
+
+      figcaption {
+        display: none;
+        position: relative;
+      }
+
+      figure textarea {
+        display: block;
+        border: none;
+        color: #555;
+        font-size: .875rem;
+        height: 1.5rem;
+        margin: .5rem 0 0 0;
+        padding: 0;
+        resize: none;
+        outline: none;
+        text-align: center;
+        width: 100%;
+      }
+
+      #link-form {
+        position: absolute;
+        top: 3rem;
+        left: 0;
+        right: 0;
+        height: 3rem;
+        margin: 0;
+        padding: 0 1rem;
+        background: #EEE;
+        border: #CCC;
+        overflow: hidden;
+        white-space: nowrap;
+        z-index: 2;
+        text-align: center;
+        box-shadow: 0 2px 1px 1px rgba(0, 0, 0, 0.1);
+      }
+
+      #link-form input {
+        font-size: 1rem;
+        max-width: 60%;
+      }
+    </style>
+    <link rel="stylesheet" type="text/css" href="svg-with-js.min.css"></link>
+  </head>
+  <body>
+    <div id="editor-toolbar">
+      <button type="button" title="Format Bold" data-format="bold" onmousedown="handleToolbarButtonClick(event);">
+        <svg aria-label="Format Bold" focusable="false" data-prefix="fas" data-icon="bold" class="svg-inline--fa fa-bold fa-w-12" role="img" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 384 512"><path fill="currentColor" d="M333.49 238a122 122 0 0 0 27-65.21C367.87 96.49 308 32 233.42 32H34a16 16 0 0 0-16 16v48a16 16 0 0 0 16 16h31.87v288H34a16 16 0 0 0-16 16v48a16 16 0 0 0 16 16h209.32c70.8 0 134.14-51.75 141-122.4 4.74-48.45-16.39-92.06-50.83-119.6zM145.66 112h87.76a48 48 0 0 1 0 96h-87.76zm87.76 288h-87.76V288h87.76a56 56 0 0 1 0 112z"></path></svg>
+      </button>
+      <button title="Format Italic" data-format="italic" onmousedown="handleToolbarButtonClick(event);">
+        <svg aria-label="Format Italic" focusable="false" data-prefix="fas" data-icon="italic" class="svg-inline--fa fa-italic fa-w-10" role="img" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 512"><path fill="currentColor" d="M320 48v32a16 16 0 0 1-16 16h-62.76l-80 320H208a16 16 0 0 1 16 16v32a16 16 0 0 1-16 16H16a16 16 0 0 1-16-16v-32a16 16 0 0 1 16-16h62.76l80-320H112a16 16 0 0 1-16-16V48a16 16 0 0 1 16-16h192a16 16 0 0 1 16 16z"></path></svg>
+      </button>
+      <button title="Format Strikethrough" data-format="strikethrough" onmousedown="handleToolbarButtonClick(event);">
+        <svg aria-label="Format Strikethrough" focusable="false" data-prefix="fas" data-icon="strikethrough" class="svg-inline--fa fa-strikethrough fa-w-16" role="img" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><path fill="currentColor" d="M496 224H293.9l-87.17-26.83A43.55 43.55 0 0 1 219.55 112h66.79A49.89 49.89 0 0 1 331 139.58a16 16 0 0 0 21.46 7.15l42.94-21.47a16 16 0 0 0 7.16-21.46l-.53-1A128 128 0 0 0 287.51 32h-68a123.68 123.68 0 0 0-123 135.64c2 20.89 10.1 39.83 21.78 56.36H16a16 16 0 0 0-16 16v32a16 16 0 0 0 16 16h480a16 16 0 0 0 16-16v-32a16 16 0 0 0-16-16zm-180.24 96A43 43 0 0 1 336 356.45 43.59 43.59 0 0 1 292.45 400h-66.79A49.89 49.89 0 0 1 181 372.42a16 16 0 0 0-21.46-7.15l-42.94 21.47a16 16 0 0 0-7.16 21.46l.53 1A128 128 0 0 0 224.49 480h68a123.68 123.68 0 0 0 123-135.64 114.25 114.25 0 0 0-5.34-24.36z"></path></svg>
+      </button>
+      <button title="Format Underline" data-format="underline" onmousedown="handleToolbarButtonClick(event);">
+        <svg aria-label="Format Underline" focusable="false" data-prefix="fas" data-icon="underline" class="svg-inline--fa fa-underline fa-w-14" role="img" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><path fill="currentColor" d="M32 64h32v160c0 88.22 71.78 160 160 160s160-71.78 160-160V64h32a16 16 0 0 0 16-16V16a16 16 0 0 0-16-16H272a16 16 0 0 0-16 16v32a16 16 0 0 0 16 16h32v160a80 80 0 0 1-160 0V64h32a16 16 0 0 0 16-16V16a16 16 0 0 0-16-16H32a16 16 0 0 0-16 16v32a16 16 0 0 0 16 16zm400 384H16a16 16 0 0 0-16 16v32a16 16 0 0 0 16 16h416a16 16 0 0 0 16-16v-32a16 16 0 0 0-16-16z"></path></svg>
+      </button>
+      <button data-format="link" title="Insert Link" onmousedown="handleToolbarButtonClick(event);">
+        <svg aria-label="Insert Link" focusable="false" data-prefix="fas" data-icon="link" class="svg-inline--fa fa-link fa-w-16" role="img" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><path fill="currentColor" d="M326.612 185.391c59.747 59.809 58.927 155.698.36 214.59-.11.12-.24.25-.36.37l-67.2 67.2c-59.27 59.27-155.699 59.262-214.96 0-59.27-59.26-59.27-155.7 0-214.96l37.106-37.106c9.84-9.84 26.786-3.3 27.294 10.606.648 17.722 3.826 35.527 9.69 52.721 1.986 5.822.567 12.262-3.783 16.612l-13.087 13.087c-28.026 28.026-28.905 73.66-1.155 101.96 28.024 28.579 74.086 28.749 102.325.51l67.2-67.19c28.191-28.191 28.073-73.757 0-101.83-3.701-3.694-7.429-6.564-10.341-8.569a16.037 16.037 0 0 1-6.947-12.606c-.396-10.567 3.348-21.456 11.698-29.806l21.054-21.055c5.521-5.521 14.182-6.199 20.584-1.731a152.482 152.482 0 0 1 20.522 17.197zM467.547 44.449c-59.261-59.262-155.69-59.27-214.96 0l-67.2 67.2c-.12.12-.25.25-.36.37-58.566 58.892-59.387 154.781.36 214.59a152.454 152.454 0 0 0 20.521 17.196c6.402 4.468 15.064 3.789 20.584-1.731l21.054-21.055c8.35-8.35 12.094-19.239 11.698-29.806a16.037 16.037 0 0 0-6.947-12.606c-2.912-2.005-6.64-4.875-10.341-8.569-28.073-28.073-28.191-73.639 0-101.83l67.2-67.19c28.239-28.239 74.3-28.069 102.325.51 27.75 28.3 26.872 73.934-1.155 101.96l-13.087 13.087c-4.35 4.35-5.769 10.79-3.783 16.612 5.864 17.194 9.042 34.999 9.69 52.721.509 13.906 17.454 20.446 27.294 10.606l37.106-37.106c59.271-59.259 59.271-155.699.001-214.959z"></path></svg>
+      </button>
+      <button data-format="image" title="Insert Image" onmousedown="handleToolbarButtonClick(event);">
+        <svg aria-label="Insert Image" focusable="false" data-prefix="far" data-icon="image" class="svg-inline--fa fa-image fa-w-16" role="img" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><path fill="currentColor" d="M464 64H48C21.49 64 0 85.49 0 112v288c0 26.51 21.49 48 48 48h416c26.51 0 48-21.49 48-48V112c0-26.51-21.49-48-48-48zm-6 336H54a6 6 0 0 1-6-6V118a6 6 0 0 1 6-6h404a6 6 0 0 1 6 6v276a6 6 0 0 1-6 6zM128 152c-22.091 0-40 17.909-40 40s17.909 40 40 40 40-17.909 40-40-17.909-40-40-40zM96 352h320v-80l-87.515-87.515c-4.686-4.686-12.284-4.686-16.971 0L192 304l-39.515-39.515c-4.686-4.686-12.284-4.686-16.971 0L96 304v48z"></path></svg>
+      </button>
+      <button data-format="header" title="Format as Header" onmousedown="handleToolbarButtonClick(event);">
+        <svg aria-label="Format as Header" focusable="false" aria-label="header" data-prefix="fas" data-icon="heading" class="svg-inline--fa fa-heading fa-w-16" role="img" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><path fill="currentColor" d="M448 96v320h32a16 16 0 0 1 16 16v32a16 16 0 0 1-16 16H320a16 16 0 0 1-16-16v-32a16 16 0 0 1 16-16h32V288H160v128h32a16 16 0 0 1 16 16v32a16 16 0 0 1-16 16H32a16 16 0 0 1-16-16v-32a16 16 0 0 1 16-16h32V96H32a16 16 0 0 1-16-16V48a16 16 0 0 1 16-16h160a16 16 0 0 1 16 16v32a16 16 0 0 1-16 16h-32v128h192V96h-32a16 16 0 0 1-16-16V48a16 16 0 0 1 16-16h160a16 16 0 0 1 16 16v32a16 16 0 0 1-16 16z"></path></svg>
+      </button>
+      <button data-format="blockquote" title="Format as Blockquote" onmousedown="handleToolbarButtonClick(event);">
+        <svg aria-label="Format as Blockquote" focusable="false" data-prefix="fas" data-icon="quote-left" class="svg-inline--fa fa-quote-left fa-w-16" role="img" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><path fill="currentColor" d="M464 256h-80v-64c0-35.3 28.7-64 64-64h8c13.3 0 24-10.7 24-24V56c0-13.3-10.7-24-24-24h-8c-88.4 0-160 71.6-160 160v240c0 26.5 21.5 48 48 48h128c26.5 0 48-21.5 48-48V304c0-26.5-21.5-48-48-48zm-288 0H96v-64c0-35.3 28.7-64 64-64h8c13.3 0 24-10.7 24-24V56c0-13.3-10.7-24-24-24h-8C71.6 32 0 103.6 0 192v240c0 26.5 21.5 48 48 48h128c26.5 0 48-21.5 48-48V304c0-26.5-21.5-48-48-48z"></path></svg>
+      </button>
+      <button data-format="list" data-value="unordered" title="Format as Unordered List" onmousedown="handleToolbarButtonClick(event);">
+        <svg aria-label="Format as Unordered List" focusable="false" data-prefix="fas" data-icon="list-ul" class="svg-inline--fa fa-list-ul fa-w-16" role="img" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><path fill="currentColor" d="M48 48a48 48 0 1 0 48 48 48 48 0 0 0-48-48zm0 160a48 48 0 1 0 48 48 48 48 0 0 0-48-48zm0 160a48 48 0 1 0 48 48 48 48 0 0 0-48-48zm448 16H176a16 16 0 0 0-16 16v32a16 16 0 0 0 16 16h320a16 16 0 0 0 16-16v-32a16 16 0 0 0-16-16zm0-320H176a16 16 0 0 0-16 16v32a16 16 0 0 0 16 16h320a16 16 0 0 0 16-16V80a16 16 0 0 0-16-16zm0 160H176a16 16 0 0 0-16 16v32a16 16 0 0 0 16 16h320a16 16 0 0 0 16-16v-32a16 16 0 0 0-16-16z"></path></svg>
+      </button>
+      <button data-format="list" title="Format as Ordered List" data-value="ordered" onmousedown="handleToolbarButtonClick(event);">
+        <svg aria-label="Format as Ordered List" focusable="false" data-prefix="fas" data-icon="list-ol" class="svg-inline--fa fa-list-ol fa-w-16" role="img" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><path fill="currentColor" d="M61.77 401l17.5-20.15a19.92 19.92 0 0 0 5.07-14.19v-3.31C84.34 356 80.5 352 73 352H16a8 8 0 0 0-8 8v16a8 8 0 0 0 8 8h22.83a157.41 157.41 0 0 0-11 12.31l-5.61 7c-4 5.07-5.25 10.13-2.8 14.88l1.05 1.93c3 5.76 6.29 7.88 12.25 7.88h4.73c10.33 0 15.94 2.44 15.94 9.09 0 4.72-4.2 8.22-14.36 8.22a41.54 41.54 0 0 1-15.47-3.12c-6.49-3.88-11.74-3.5-15.6 3.12l-5.59 9.31c-3.72 6.13-3.19 11.72 2.63 15.94 7.71 4.69 20.38 9.44 37 9.44 34.16 0 48.5-22.75 48.5-44.12-.03-14.38-9.12-29.76-28.73-34.88zM496 224H176a16 16 0 0 0-16 16v32a16 16 0 0 0 16 16h320a16 16 0 0 0 16-16v-32a16 16 0 0 0-16-16zm0-160H176a16 16 0 0 0-16 16v32a16 16 0 0 0 16 16h320a16 16 0 0 0 16-16V80a16 16 0 0 0-16-16zm0 320H176a16 16 0 0 0-16 16v32a16 16 0 0 0 16 16h320a16 16 0 0 0 16-16v-32a16 16 0 0 0-16-16zM16 160h64a8 8 0 0 0 8-8v-16a8 8 0 0 0-8-8H64V40a8 8 0 0 0-8-8H32a8 8 0 0 0-7.14 4.42l-8 16A8 8 0 0 0 24 64h8v64H16a8 8 0 0 0-8 8v16a8 8 0 0 0 8 8zm-3.91 160H80a8 8 0 0 0 8-8v-16a8 8 0 0 0-8-8H41.32c3.29-10.29 48.34-18.68 48.34-56.44 0-29.06-25-39.56-44.47-39.56-21.36 0-33.8 10-40.46 18.75-4.37 5.59-3 10.84 2.8 15.37l8.58 6.88c5.61 4.56 11 2.47 16.12-2.44a13.44 13.44 0 0 1 9.46-3.84c3.33 0 9.28 1.56 9.28 8.75C51 248.19 0 257.31 0 304.59v4C0 316 5.08 320 12.09 320z"></path></svg>
+      </button>
+      <button title="Format Code" data-format="code" onmousedown="handleToolbarButtonClick(event);">
+        <svg aria-label="Format Code" focusable="false" data-prefix="fas" data-icon="code" class="svg-inline--fa fa-code fa-w-20" role="img" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 512"><path fill="currentColor" d="M278.9 511.5l-61-17.7c-6.4-1.8-10-8.5-8.2-14.9L346.2 8.7c1.8-6.4 8.5-10 14.9-8.2l61 17.7c6.4 1.8 10 8.5 8.2 14.9L293.8 503.3c-1.9 6.4-8.5 10.1-14.9 8.2zm-114-112.2l43.5-46.4c4.6-4.9 4.3-12.7-.8-17.2L117 256l90.6-79.7c5.1-4.5 5.5-12.3.8-17.2l-43.5-46.4c-4.5-4.8-12.1-5.1-17-.5L3.8 247.2c-5.1 4.7-5.1 12.8 0 17.5l144.1 135.1c4.9 4.6 12.5 4.4 17-.5zm327.2.6l144.1-135.1c5.1-4.7 5.1-12.8 0-17.5L492.1 112.1c-4.8-4.5-12.4-4.3-17 .5L431.6 159c-4.6 4.9-4.3 12.7.8 17.2L523 256l-90.6 79.7c-5.1 4.5-5.5 12.3-.8 17.2l43.5 46.4c4.5 4.9 12.1 5.1 17 .6z"></path></svg>
+      </button>
+    </div>
+    <div id="editor" contenteditable="true">
+      <h1>Charisi</h1>
+      <blockquote><p>Charisi is rich text editor for the web, built for speed and stability.</p></blockquote>
+      <ul>
+        <li>7kb gzipped and minified.</li>
+        <li>Vanilla JavaScript, no dependencies.</li>
+        <li>Supports all international languages and virtual keyboards.</li>
+        <li>Supports all native input, gestures, shortcuts, selection, and navigation.</li>
+        <li>Fast, no internal document model, no virtual DOM.</li>
+        <li>Works with IE11+, Edge, Safari 8+, Chrome 30+, FireFox 24+, and Android/iOS equivalents.</li>
+      </ul>
+      <div contenteditable="false">
+        <style>
+          .btn, .social-count {
+            border-radius: 3px;
+            position: relative;
+            display: inline-block;
+            height: 21px;
+            padding: 3px 5px;
+            font-size: 14px;
+            font-weight: 500;
+            line-height: 21px;
+            vertical-align: bottom;
+            cursor: pointer;
+            -webkit-user-select: none;
+            -moz-user-select: none;
+            -ms-user-select: none;
+            user-select: none;
+            background-repeat: repeat-x;
+            background-position: -1px -1px;
+            background-size: 110% 110%;
+            border: 1px solid;
+            text-decoration: none;
+            transition: .2s background-color ease, .2s border-color ease;
+          }
+
+          .btn {
+            color: #24292e;
+            background-color: #eff3f6;
+            border-color: #c5c9cc;
+            border-color: rgba(27,31,35,.2);
+            background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg'%3e%3clinearGradient id='o' x2='0' y2='1'%3e%3cstop stop-color='%23fafbfc'/%3e%3cstop offset='90%25' stop-color='%23eff3f6'/%3e%3c/linearGradient%3e%3crect width='100%25' height='100%25' fill='url(%23o)'/%3e%3c/svg%3e");
+            background-image: -moz-linear-gradient(top, #fafbfc, #eff3f6 90%);
+            background-image: linear-gradient(180deg, #fafbfc, #eff3f6 90%);
+            filter: progid:DXImageTransform.Microsoft.Gradient(startColorstr='#FFFAFBFC', endColorstr='#FFEEF2F5');
+          }
+
+          .btn:hover, .btn:focus {
+            background-color: #e6ebf1;
+            background-position: -0.5em;
+            border-color: #9fa4a9;
+            border-color: rgba(27,31,35,.35);
+          }
+
+          .btn:active {
+            background-color: #e9ecef;
+            border-color: #a1a4a8;
+            border-color: rgba(27,31,35,.35);
+            box-shadow: inset 0 .15em .3em rgba(27,31,35,.15);
+            background-image: none;
+            filter: none;
+          }
+        </style>
+        <a href="https://github.com/alexmingoia/charisi" title="View Charisi on GitHub" class="btn">
+          <svg aria-hidden="true" aria-label="View Charisi on GitHub" data-prefix="fab" data-icon="github" class="svg-inline--fa fa-github fa-w-14" role="img" viewBox="0 0 496 512"><path d="M165.9 397.4c0 2-2.3 3.6-5.2 3.6-3.3.3-5.6-1.3-5.6-3.6 0-2 2.3-3.6 5.2-3.6 3-.3 5.6 1.3 5.6 3.6zm-31.1-4.5c-.7 2 1.3 4.3 4.3 4.9 2.6 1 5.6 0 6.2-2s-1.3-4.3-4.3-5.2c-2.6-.7-5.5.3-6.2 2.3zm44.2-1.7c-2.9.7-4.9 2.6-4.6 4.9.3 2 2.9 3.3 5.9 2.6 2.9-.7 4.9-2.6 4.6-4.6-.3-1.9-3-3.2-5.9-2.9zM244.8 8C106.1 8 0 113.3 0 252c0 110.9 69.8 205.8 169.5 239.2 12.8 2.3 17.3-5.6 17.3-12.1 0-6.2-.3-40.4-.3-61.4 0 0-70 15-84.7-29.8 0 0-11.4-29.1-27.8-36.6 0 0-22.9-15.7 1.6-15.4 0 0 24.9 2 38.6 25.8 21.9 38.6 58.6 27.5 72.9 20.9 2.3-16 8.8-27.1 16-33.7-55.9-6.2-112.3-14.3-112.3-110.5 0-27.5 7.6-41.3 23.6-58.9-2.6-6.5-11.1-33.3 2.6-67.9 20.9-6.5 69 27 69 27 20-5.6 41.5-8.5 62.8-8.5s42.8 2.9 62.8 8.5c0 0 48.1-33.6 69-27 13.7 34.7 5.2 61.4 2.6 67.9 16 17.7 25.8 31.5 25.8 58.9 0 96.5-58.9 104.2-114.8 110.5 9.2 7.9 17 22.9 17 46.4 0 33.7-.3 75.4-.3 83.6 0 6.5 4.6 14.4 17.3 12.1C428.2 457.8 496 362.9 496 252 496 113.3 383.5 8 244.8 8zM97.2 352.9c-1.3 1-1 3.3.7 5.2 1.6 1.6 3.9 2.3 5.2 1 1.3-1 1-3.3-.7-5.2-1.6-1.6-3.9-2.3-5.2-1zm-10.8-8.1c-.7 1.3.3 2.9 2.3 3.9 1.6 1 3.6.7 4.3-.7.7-1.3-.3-2.9-2.3-3.9-2-.6-3.6-.3-4.3.7zm32.4 35.6c-1.6 1.3-1 4.3 1.3 6.2 2.3 2.3 5.2 2.6 6.5 1 1.3-1.3.7-4.3-1.3-6.2-2.2-2.3-5.2-2.6-6.5-1zm-11.4-14.7c-1.6 1-1.6 3.6 0 5.9 1.6 2.3 4.3 3.3 5.6 2.3 1.6-1.3 1.6-3.9 0-6.2-1.4-2.3-4-3.3-5.6-2z"/></svg>
+          View on GitHub
+        </a>
+      </div>
+      <h2>How is Charisi different?</h2>
+      <p>Most rich-text editors for the web are <em>broken by design</em>. These editors intercept input, update an internal model, and render each change. The problem is <em>browsers do not send events for all input</em>, and reconstructing every input is incredibly complex. Editors using this approach have many input-related bugs, particularly on mobile devices with virtual keyboards. <a href="https://github.com/facebook/draft-js/issues/2087">Draft.js</a>, <a href="https://github.com/quilljs/quill/issues/3036">Quill</a>, <a href="https://github.com/basecamp/trix/issues/689">Trix</a>, <a href="https://github.com/ianstormtaylor/slate/issues/2062">Slate</a>, and <a href="https://github.com/ProseMirror/prosemirror/issues/982">ProseMirror</a> all have various bugs stemming from the futile complexity of reconstructing native input.</p>
+      <p>Charisi lets the browser handle input, and normalizes DOM changes. This approach preserves native input functionality and accessibility, and has excellent performance. Charisi also provides a small API to format text, insert images, and respond to input.</p>
+      <h2>Who is Charisi for?</h2>
+      <p>Charisi is intended for simple, rich text input for web applications. It is not an API for building novel or complex editors, such as IDEs or spreadsheets.</p>
+      <h2>Using Charisi</h2>
+      <h3><code>charisi(editorNode)</code></h3>
+      <p>Initialize the editor for a container element.</p>
+      <h3><code>editorNode.insertImage(src[, range])</code></h3>
+      <p>Insert an image at the current selection, or specified range.</p>
+      <h3><code>editorNode.insertEmbed(html[, range])</code></h3>
+      <p>Insert HTML embed (Tweets, YouTube videos, etc.) at the current selection, or specified range.</p>
+      <h3><code>editorNode.insertHorizontalRule(src[, range])</code></h3>
+      <p>Insert a horizontal rule at the current selection, or specified range.</p>
+      <h3><code>editorNode.format(formatName[, value[, ranges]])</code></h3>
+      <p>Apply the format to the current selected ranges, or specified ranges.</p>
+      <ul>
+        <li><code>bold</code></li>
+        <li><code>italic</code></li>
+        <li><code>underline</code></li>
+        <li><code>strikethrough</code></li>
+        <li><code>superscript</code></li>
+        <li><code>subscript</code></li>
+        <li><code>link</code>: with URL value</li>
+        <li><code>header</code>: with value <code>H1</code>, <code>H2</code>, etc.</li>
+        <li><code>blockquote</code></li>
+        <li><code>list</code>: with value <code>ordered</code> or <code>unordered</code></li>
+        <li><code>code</code></li>
+        <li><code>direction</code>: with value <code>rtl</code> or <code>ltr</code></li>
+      </ul>
+      <h3><code>editorNode.removeFormat(formatName[, ranges])</code></h3>
+      <p>Remove the format at the current selected range, or specified ranges.</p>
+      <h3><code>editorNode.getFormats()</code></h3>
+      <p>Returns an object of format names and their values at the current selection focus.</p>
+      <h3><code>editorNode.getTextRanges()</code></h3>
+      <p>Returns an array of text ranges if the selection intersects the editor. A text range is an object with <code>commonAncestorBlock</code>, <code>range</code>, <code>start</code>, <code>end</code>, and <code>formats</code> properties. <code>start</code> and <code>end</code> represent the current text selection as text offsets starting from the <code>commonAncestorBlock</code>. <code>formats</code> is an array of objects with the format <code>name</code>, format <code>value</code>, <code>start</code>, and <code>end</code> text offsets.</p>
+      <h3><code>editorNode.getHTML()</code></h3>
+      <p>Return the editor contents.</p>
+      <h2>License</h2>
+      <p>Charisi is free for non-commercial use. Commercial licenses are available upon request. Email <a href="mailto:alex@alexmingoia.com">alex@alexmingoia.com</a> to obtain a commercial license.</p>
+    </div>
+    <script src="charisi.js"></script>
+    <script>
+      var editor = charisi(document.getElementById('editor'));
+      var toolbar = document.getElementById('editor-toolbar');
+
+      window.addEventListener('resize', debounce(updateToolbarPosition, 250));
+      window.addEventListener('scroll', debounce(updateToolbarPosition, 250));
+
+      function handleToolbarButtonClick(event) {
+        event.preventDefault();
+        event.stopPropagation();
+
+        var format = event.currentTarget.getAttribute('data-format');
+        var value = event.currentTarget.getAttribute('data-value');
+        var formats = editor.getFormats();
+
+        if (formats[format] === value || (formats[format] && !value)) {
+          if (formats.link && !window.getSelection().isCollapsed) {
+            showLinkForm(formats.link);
+          } else {
+            editor.removeFormat(format);
+          }
+        } else if (format === 'image') {
+          selectImage();
+        } else if (format === 'link') {
+          if (!editor.linkForm) showLinkForm();
+        } else {
+          editor.format(format, value);
+        }
+      }
+
+      // Update toolbar position if window has been scrolled. In most browsers
+      // this doesn't happen, but iOS Safari scrolls and resizes the window when
+      // displaying the virtual keyboard.
+      function updateToolbarPosition() {
+        editor.style.paddingTop = (document.body.scrollTop + 8) + 'px';
+        toolbar.style.top = document.body.scrollTop + 'px';
+        if (editor.linkForm) {
+          editor.linkForm.style.top = document.body.scrollTop + (3 * 16) + 'px';
+        }
+      }
+
+      function selectImage() {
+        var fileinput = document.createElement('INPUT');
+        fileinput.setAttribute('type', 'file');
+        fileinput.setAttribute('accept', 'image/*');
+        fileinput.setAttribute("style", "visibility:hidden");
+        fileinput.addEventListener('change', function() {
+          var file = fileinput.files[0];
+          if (file) {
+            var fileReader = new FileReader();
+            fileReader.addEventListener('load', function(e) {
+              editor.insertImage(fileReader.result);
+            });
+            fileReader.readAsDataURL(file);
+          }
+        });
+        editor.parentNode.appendChild(fileinput);
+        fileinput.click();
+      }
+
+      // Show link form to edit URL of links.
+      function showLinkForm(url) {
+        var linkForm = editor.linkForm = document.createElement('FORM');
+        var linkFormInput = document.createElement('INPUT');
+        var linkFormSubmit = document.createElement('BUTTON');
+        var linkFormCancel = document.createElement('BUTTON');
+        var ranges = linkForm.cachedRanges = getRanges();
+
+        linkForm.setAttribute('id', 'link-form');
+        linkFormInput.setAttribute('placeholder', 'https://example.com/');
+        linkFormSubmit.setAttribute('type', 'submit');
+        linkFormSubmit.textContent = url ? 'Save' : 'OK';
+        linkFormCancel.setAttribute('type', 'button');
+        linkFormCancel.textContent = url ? 'Remove' : 'Cancel';
+
+        if (url) linkFormInput.value = url;
+
+        linkForm.addEventListener('submit', function(e) {
+          e.preventDefault();
+          editor.format('link', linkFormInput.value, ranges);
+          linkForm.parentNode.removeChild(linkForm);
+          editor.linkForm = null;
+        });
+
+        linkFormCancel.addEventListener('click', function(e) {
+          e.preventDefault();
+          editor.removeFormat('link', ranges);
+          linkForm.parentNode.removeChild(linkForm);
+          editor.linkForm = null;
+        });
+
+        linkForm.appendChild(linkFormInput);
+        linkForm.appendChild(linkFormSubmit);
+        linkForm.appendChild(linkFormCancel);
+        document.body.appendChild(linkForm);
+        linkFormInput.focus();
+        linkForm.style.top = document.body.scrollTop + (3 * 16) + 'px';
+      }
+
+      document.body.addEventListener('keydown', function(e) {
+        var linkForm = editor.linkForm;
+        if (linkForm && e.target !== linkForm && e.target.parentNode !== linkForm) {
+          linkForm.parentNode.removeChild(linkForm);
+          editor.linkForm = null;
+        }
+      });
+
+      document.body.addEventListener('mousedown', function(e) {
+        var linkForm = editor.linkForm;
+        if (linkForm && e.target !== linkForm && e.target.parentNode !== linkForm) {
+          linkForm.parentNode.removeChild(linkForm);
+          editor.linkForm = null;
+        }
+      });
+
+      function getRanges() {
+        var sel = window.getSelection();
+        var ranges = [];
+        for (var i = 0, l = sel.rangeCount; i < l; i++) {
+          var range = sel.getRangeAt(i);
+          ranges.push(range);
+        }
+        return ranges;
+      }
+
+      function setSelection(ranges) {
+        var sel = window.getSelection();
+        sel.removeAllRanges();
+        for (var i = 0, l = ranges.length; i < l; i++) {
+          sel.addRange(ranges[i]);
+        }
+      }
+
+      function debounce(fn, interval) {
+        var timout;
+        return function() {
+          clearTimeout(timout);
+          timout = setTimeout(fn, interval);
+        }
+      }
+    </script>
+  </body>
+</html>
